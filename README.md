@@ -18,8 +18,8 @@
 
 > **INSTRUKSI:** Update dengan nama anggota kelompok Anda dan kontribusi masing-masing
 
-| Nama | NIM | Peran | Kontribusi |
-|------|-----|-------|-----------|
+| Nama | NRP |
+|------|-----|
 | Abiyyu Raihan Putra Wikanto | 5027241042 |
 | Daniswara Fausta Novanto | 5027241050 |
 | Muhammad Khairul Yahya | 5027241092 |
