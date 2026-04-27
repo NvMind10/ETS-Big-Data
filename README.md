@@ -10,13 +10,10 @@
 | **Topik** | NewsPulse: Analisis Tren Berita Nasional |
 | **Pertanyaan Bisnis** | Topik apa yang paling hangat hari ini di berbagai media, dan jam berapa biasanya berita dominan muncul? |
 | **Durasi Pengerjaan** | 2 minggu |
-| **Deliverable** | GitHub Repository + Demo Live 10 menit |
 
 ---
 
 ## 👥 Anggota Kelompok
-
-> **INSTRUKSI:** Update dengan nama anggota kelompok Anda dan kontribusi masing-masing
 
 | Nama | NRP |
 |------|-----|
@@ -104,8 +101,8 @@ kelompok-newspulse/
 │   └── consumer_to_hdfs.py        ← Consumer: Kafka → HDFS
 │
 ├── spark/
-│   ├── analysis.py                ← Spark analysis (3 analisis)
-│   └── analysis.ipynb             ← Optional: Jupyter notebook version
+│   └── analysis.py                ← Spark analysis (3 analisis)
+│   
 │
 ├── dashboard/
 │   ├── app.py                     ← Flask web app
