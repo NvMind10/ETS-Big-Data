@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NewsPulse - Dashboard Analisis Berita Nasional</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.js"></script>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <header>
+        <h1>📰 NewsPulse - Dashboard Analisis Berita Nasional</h1>
+        <p>Real-time Monitoring Tren Berita Indonesia</p>
+        <div class="status">
+            <span id="status-indicator" class="status-dot loading"></span>
+            <span id="status-text">Loading...</span>
+            <span id="last-update">Last update: --:--:--</span>
+        </div>
+    </header>
+
+    <main>
+        <!-- Panel 1: Trending Words -->
+        <section class="dashboard-panel">
+            <h2>📊 Top 15 Kata Trending dalam Judul Berita</h2>
+            <div class="content">
+                <table class="trending-table" id="trending-table">
+                    <thead>
+                        <tr>
+                            <th>Rank</th>
+                            <th>Kata</th>
+                            <th>Frekuensi</th>
+                            <th>Visualisasi</th>
+                        </tr>
+                    </thead>
+                    <tbody id="trending-tbody">
+                        <tr><td colspan="4" class="loading-msg">Loading trending words...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- Panel 2: Source Distribution -->
+        <section class="dashboard-panel">
+            <h2>📈 Distribusi Berita Per Sumber</h2>
+            <div class="chart-container">
+                <canvas id="sourceChart"></canvas>
+            </div>
+            <table class="source-table" id="source-table">
+                <thead>
+                    <tr>
+                        <th>Sumber</th>
+                        <th>Jumlah Artikel</th>
+                        <th>Persentase</th>
+                    </tr>
+                </thead>
+                <tbody id="source-tbody">
+                    <tr><td colspan="3" class="loading-msg">Loading source data...</td></tr>
+                </tbody>
+            </table>
+        </section>
+
+        <!-- Panel 3: Recent News -->
+        <section class="dashboard-panel">
+            <h2>📰 Berita Terbaru</h2>
+            <div class="news-feed" id="news-feed">
+                <div class="loading-msg">Loading recent news...</div>
+            </div>
+        </section>
+    </main>
+
+    <footer>
+        <p>NewsPulse Big Data Pipeline | ETS Praktik Big Data 2026 | Auto-refresh setiap 30 detik</p>
+    </footer>
+
+    <script>
+        let sourceChart = null;
+
+        async function fetchData() {
+            try {
+                const response = await fetch('/api/data');
+                if (!response.ok) throw new Error('API error');
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    updateUI(data);
+                    updateStatus('Connected', 'ok');
+                } else {
+                    updateStatus('API Error', 'error');
+                }
+            } catch (error) {
+                console.error('Fetch error:', error);
+                updateStatus('Connection Error', 'error');
+            }
+        }
+
+        function updateStatus(text, status) {
+            const indicator = document.getElementById('status-indicator');
+            const statusText = document.getElementById('status-text');
+            const timestamp = new Date().toLocaleTimeString('id-ID');
+            
+            indicator.className = `status-dot ${status}`;
+            statusText.textContent = text;
+            document.getElementById('last-update').textContent = `Last update: ${timestamp}`;
+        }
+
+        function updateUI(data) {
+            updateTrendingWords(data.trending_words);
+            updateSourceDistribution(data.source_distribution);
+            updateRecentNews(data.recent_news);
+        }
+
+        function updateTrendingWords(words) {
+            const tbody = document.getElementById('trending-tbody');
+            
+            if (!words || words.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="4" class="no-data">Belum ada data trending words</td></tr>';
+                return;
+            }
+            
+            const maxFreq = Math.max(...words.map(w => w.count || 0));
+            
+            tbody.innerHTML = words.map((word, idx) => {
+                const freq = word.count || 0;
+                const barWidth = (freq / maxFreq) * 100;
+                return `
+                    <tr>
+                        <td class="rank">${idx + 1}</td>
+                        <td class="word"><strong>"${word.word}"</strong></td>
+                        <td class="frequency">${freq}x</td>
+                        <td class="bar">
+                            <div class="bar-fill" style="width: ${barWidth}%"></div>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        function updateSourceDistribution(sources) {
+            const tbody = document.getElementById('source-tbody');
+            
+            if (!sources || sources.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="3" class="no-data">Belum ada data sumber</td></tr>';
+                updateChart([], []);
+                return;
+            }
+            
+            tbody.innerHTML = sources.map(source => `
+                <tr>
+                    <td><strong>${source.source}</strong></td>
+                    <td>${source.jumlah_artikel}</td>
+                    <td>${(source.persentase || 0).toFixed(2)}%</td>
+                </tr>
+            `).join('');
+            
+            // Update chart
+            const labels = sources.map(s => s.source);
+            const values = sources.map(s => s.jumlah_artikel);
+            updateChart(labels, values);
+        }
+
+        function updateChart(labels, values) {
+            const ctx = document.getElementById('sourceChart').getContext('2d');
+            
+            if (sourceChart) {
+                sourceChart.destroy();
+            }
+            
+            sourceChart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'Jumlah Artikel',
+                        data: values,
+                        backgroundColor: [
+                            '#FF6B6B', '#4ECDC4', '#45B7D1', 
+                            '#FFA07A', '#98D8C8', '#F7DC6F'
+                        ],
+                        borderColor: '#333',
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: true,
+                    plugins: {
+                        legend: {
+                            display: false
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true
+                        }
+                    }
+                }
+            });
+        }
+
+        function updateRecentNews(news) {
+            const feed = document.getElementById('news-feed');
+            
+            if (!news || news.length === 0) {
+                feed.innerHTML = '<div class="no-data">Belum ada berita terbaru</div>';
+                return;
+            }
+            
+            feed.innerHTML = news.map((item, idx) => {
+                const title = item.title || 'No title';
+                const source = item.source || 'Unknown';
+                const summary = item.summary || item.description || 'No summary';
+                const url = item.url || '#';
+                const timestamp = item.published_at || item.timestamp || '';
+                
+                return `
+                    <div class="news-item">
+                        <div class="news-header">
+                            <h3><a href="${url}" target="_blank">${title}</a></h3>
+                            <span class="news-source">${source}</span>
+                        </div>
+                        <p class="news-summary">${summary.substring(0, 200)}...</p>
+                        <div class="news-footer">
+                            <span class="news-time">${formatTime(timestamp)}</span>
+                            <a href="${url}" target="_blank" class="read-more">Baca Selengkapnya →</a>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function formatTime(timestamp) {
+            if (!timestamp) return 'N/A';
+            try {
+                const date = new Date(timestamp);
+                return date.toLocaleString('id-ID', {
+                    hour: '2-digit',
+                    minute: '2-digit',
+                    second: '2-digit'
+                });
+            } catch {
+                return timestamp;
+            }
+        }
+
+        // Initial load
+        fetchData();
+
+        // Auto-refresh setiap 30 detik
+        setInterval(fetchData, 30000);
+
+        // Log ke console
+        console.log('NewsPulse Dashboard loaded');
+        console.log('Auto-refresh interval: 30 seconds');
+    </script>
+</body>
+</html>
