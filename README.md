@@ -20,11 +20,11 @@
 
 | Nama | NIM | Peran | Kontribusi |
 |------|-----|-------|-----------|
-| [Nama 1] | [NIM] | Infrastructure Lead | Docker, Kafka setup, HDFS configuration |
-| [Nama 2] | [NIM] | Data Ingestion | Producer API, Producer RSS |
-| [Nama 3] | [NIM] | Data Storage | Consumer to HDFS, HDFS management |
-| [Nama 4] | [NIM] | Analytics | Spark analysis, data processing |
-| [Nama 5] | [NIM] | Frontend | Dashboard Flask, visualization |
+| Abiyyu Raihan Putra Wikanto | 5027241042 |
+| Daniswara Fausta Novanto | 5027241050 |
+| Muhammad Khairul Yahya | 5027241092 |
+| Muhammad Fachry Salahhudin Rusamsyi | 5027241031 |
+| Muhammad Huda Rabbani | 5027241098 |
 
 ---
 
